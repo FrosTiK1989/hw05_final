@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Об авторе проекта{% endblock %}
+{% block content %}
+{% load static %}
+<div class="row justify-content-center">
+  <div class="col-md-8 p-5">
+    <div class="card">
+      <div class="card-header">
+        <h1>Привет, я Денис, автор данного проекта</h1>
+      </div>
+      <div class="card-body">
+          <p class="lead">
+            <img src="{% static 'img/author.jpeg' %}" hspace="5px" width="180" align="right">
+              Давайте знакомиться, меня зовут Денис. когда то давно я задумался о том что бы начать учиться на разработчика
+              и вот наконец то в ноябре 2021 года, я занес денежки в Яндекс. Начались веселые дни.
+              Учеба, домашние задания, все это пересекается с работой. Боже, как же все это оказалось сложно, вы просто не представляете.
+          </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
