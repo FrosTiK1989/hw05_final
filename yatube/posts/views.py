@@ -17,7 +17,7 @@ def get_paginator_page(request, query_set):
 
 
 def index(request):
-    posts = Post.objects.all()
+    posts = Post.objects.select_related("group", "author").all()
     page_obj = get_paginator_page(request, posts)
     context = {
         "page_obj": page_obj,
@@ -41,14 +41,11 @@ def profile(request, username):
     posts = author.posts.all()
     page_obj = get_paginator_page(request, posts)
     user = request.user
-    if (
+    following = (
         user.is_authenticated
         and author != user
         and Follow.objects.filter(user=user, author=author).exists()
-    ):
-        following = True
-    else:
-        following = False
+    )
     context = {
         "author": author,
         "page_obj": page_obj,
@@ -119,10 +116,7 @@ def comment_added(request, post_id):
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
-    user = request.user
-    authors = user.follower.all().values("author")
-    posts = Post.objects.filter(author__in=authors)
+    posts = Post.objects.filter(author__following__user=request.user)
     page_obj = get_paginator_page(request, posts)
     context = {
         "page_obj": page_obj,
@@ -133,7 +127,6 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    # Подписаться на автора
     author = get_object_or_404(User, username=username)
     following = Follow.objects.filter(
         user=request.user,

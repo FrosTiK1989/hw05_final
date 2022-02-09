@@ -3,7 +3,7 @@ from django.urls import reverse
 from django import forms
 from django.core.cache import cache
 
-from ..models import Post, Group, User
+from ..models import Follow, Post, Group, User
 
 ALL_POSTS = 13
 POSTS_ON_1ST_PAGE = 10
@@ -75,7 +75,7 @@ class PostPagesTest(TestCase):
         self.assertEqual(post_author_0, self.post.author)
         self.assertEqual(post_image_0, self.post.image, "Беда с картинкой")
 
-    def test_profile_page_sho_correct_context(self):
+    def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом"""
 
         response = self.authorized_client.get(
@@ -192,18 +192,36 @@ class PaginatorViewsTest(TestCase):
                     len(response.context["page_obj"]), POSTS_ON_2ND_PAGE
                 )
 
+
+class CacheTest(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.user = User.objects.create_user(username=AUTHOR)
+        cls.group = Group.objects.create(
+            title=GROUP_TITLE,
+            slug=GROUP_SLUG,
+            description=GROUP_DESCRIPTION,
+        )
+        cls.test_post_cache = Post.objects.create(
+            author=cls.user,
+            text=POST_CACHE,
+        )
+
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(username="CacheTester")
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        cache.clear()
+
     def test_cache_index_page_correct_context(self):
         """Кэш index сформирован с правильным контекстом."""
 
-        test_post_cache = Post.objects.create(
-            text=POST_CACHE,
-            author=self.user,
-        )
         response = self.authorized_client.get(reverse("posts:index"))
         content = response.content
         context = response.context["page_obj"][0]
-        self.assertEqual(context, test_post_cache)
-        test_post_cache.delete()
+        self.assertEqual(context, self.test_post_cache)
+        self.test_post_cache.delete()
         response = self.authorized_client.get(reverse("posts:index"))
         new_content = response.content
         self.assertEqual(content, new_content)
@@ -211,3 +229,61 @@ class PaginatorViewsTest(TestCase):
         response = self.authorized_client.get(reverse("posts:index"))
         new_new_content = response.content
         self.assertNotEqual(content, new_new_content)
+
+
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.user = User.objects.create_user(username=AUTHOR)
+        cls.group = Group.objects.create(
+            title=GROUP_TITLE,
+            slug=GROUP_SLUG,
+            description=GROUP_DESCRIPTION,
+        )
+        cls.test_post = Post.objects.create(
+            author=cls.user,
+            text=POST_CACHE,
+        )
+
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(username="Vasiliy")
+        self.user2 = User.objects.create_user(username="Alesha")
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.authorized_client2 = Client()
+        self.authorized_client2.force_login(self.user2)
+        cache.clear()
+
+    def test_auth_client_can_follow(self):
+        """
+        Проверяем что авторизованный пользователь может подписаться на автора.
+        """
+
+        follow_count = Follow.objects.count()
+        response = self.authorized_client.get(
+            reverse("posts:profile_follow", kwargs={"username": AUTHOR})
+        )
+        self.assertRedirects(
+            response, reverse("posts:profile", kwargs={"username": AUTHOR})
+        )
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+
+        response = self.authorized_client.get(reverse("posts:follow_index"))
+        content = response.content
+        response2 = self.authorized_client2.get(reverse("posts:follow_index"))
+        new_content = response2.content
+        self.assertNotEqual(content, new_content)
+
+    def test_unfollow_auth_client(self):
+        """
+        Проверяем что можно отписаться от автора и пост исчезнет из избранного.
+        """
+
+        response = self.authorized_client.get(
+            reverse("posts:profile_unfollow", kwargs={"username": AUTHOR})
+        )
+        self.assertRedirects(
+            response, reverse("posts:profile", kwargs={"username": AUTHOR})
+        )
+        self.assertEqual(Follow.objects.count(), 0)

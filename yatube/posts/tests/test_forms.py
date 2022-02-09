@@ -18,6 +18,14 @@ GROUP_DESCRIPTION = "Тестовое описание"
 POST_TEXT = "Тестовый текст"
 POST_TEXT_EDIT = "Тестовый текст БЛА БЛА БЛА"
 AUTHOR = "auth"
+PICTURE = (
+    b"\x47\x49\x46\x38\x39\x61\x02\x00"
+    b"\x01\x00\x80\x00\x00\x00\x00\x00"
+    b"\xFF\xFF\xFF\x21\xF9\x04\x00\x00"
+    b"\x00\x00\x00\x2C\x00\x00\x00\x00"
+    b"\x02\x00\x01\x00\x00\x02\x02\x0C"
+    b"\x0A\x00\x3B"
+)
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -49,14 +57,7 @@ class PostCreateFormTest(TestCase):
 
     def test_post_create(self):
         post_count = Post.objects.count()
-        small_gif = (
-            b"\x47\x49\x46\x38\x39\x61\x02\x00"
-            b"\x01\x00\x80\x00\x00\x00\x00\x00"
-            b"\xFF\xFF\xFF\x21\xF9\x04\x00\x00"
-            b"\x00\x00\x00\x2C\x00\x00\x00\x00"
-            b"\x02\x00\x01\x00\x00\x02\x02\x0C"
-            b"\x0A\x00\x3B"
-        )
+        small_gif = PICTURE
         uploaded = SimpleUploadedFile(
             name="small.gif",
             content=small_gif,
@@ -124,6 +125,7 @@ class TestCommentForm(TestCase):
         cls.form = CommentForm()
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         cache.clear()
@@ -153,3 +155,14 @@ class TestCommentForm(TestCase):
                 comments=comment,
             ).exists()
         )
+        response = self.guest_client.post(
+            reverse("posts:comment_added", kwargs={"post_id": self.post.pk}),
+            data=form_data,
+            follow=True,
+            id=self.post.pk,
+        )
+        self.assertRedirects(
+            response,
+            f'{reverse("users:login")}?next=/posts/{comment.id}/comment/',
+        )
+        self.assertEqual(Comment.objects.count(), Comment.objects.count())

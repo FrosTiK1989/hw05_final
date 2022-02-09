@@ -8,50 +8,46 @@
       </a>
       {% with request.resolver_match.view_name as view_name %}
       <ul class="nav nav-pills">
-        <li class="nav-item"> 
+        <li class="nav-item">
           <a class="nav-link
             {% if view_name  == 'about:author' %}
               active
-            {% endif %}"
-          href="{% url 'about:author' %}">Об авторе</a>
+            {% endif %}" href="{% url 'about:author' %}">Об авторе</a>
         </li>
         <li class="nav-item">
           <a class="nav-link
             {% if view_name == 'about:tech' %}
               active
-            {% endif %}"
-          href="{% url 'about:tech' %}">Технологии</a>
+            {% endif %}" href="{% url 'about:tech' %}">Технологии</a>
         </li>
-      {% if user.is_authenticated %}
-        <li class="nav-item"> 
+        {% if user.is_authenticated %}
+        <li class="nav-item">
           <a class="nav-link
             {% if view_name == 'posts:post_create' %}
               active
-            {% endif %}"
-          href="{% url 'posts:post_create' %}">Новая запись</a>
+            {% endif %}" href="{% url 'posts:post_create' %}">Новая запись</a>
         </li>
-        <li class="nav-item"> 
+        <li class="nav-item">
           <a class="nav-link link-light
             {% if view_name == 'users:password_change_form' %}
               active
-            {% endif %}"
-          href="{% url 'users:password_change_form' %}">Изменить пароль</a>
+            {% endif %}" href="{% url 'users:password_change_form' %}">Изменить пароль</a>
         </li>
-        <li class="nav-item"> 
+        <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'users:logout' %}">Выйти</a>
         </li>
         <li>
           <span class="nav-link link-dark">Пользователь {{ user.username }}</span>
         <li>
-      {% else %}
-        <li class="nav-item"> 
+          {% else %}
+        <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'users:login' %}">Войти</a>
         </li>
-        <li class="nav-item"> 
+        <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'users:signup' %}">Регистрация</a>
         </li>
-      {% endif %}
-      {% endwith %}
+        {% endif %}
+        {% endwith %}
       </ul>
     </div>
   </nav>
