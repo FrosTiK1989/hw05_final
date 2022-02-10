@@ -51,6 +51,9 @@ class PostCreateFormTest(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self) -> None:
+        self.user2 = User.objects.create_user(username="Marmok")
+        self.non_author = Client()
+        self.non_author.force_login(self.user2)
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         cache.clear()
@@ -111,6 +114,27 @@ class PostCreateFormTest(TestCase):
                 text=POST_TEXT_EDIT,
             ).exists()
         )
+
+    def test_post_edit_non_author(self):
+        """Пост не может изменить не автор поста."""
+
+        new_post_non = Post.objects.create(
+            text="New text for new test non author",
+            author=self.user,
+        )
+        form_data_non = {
+            "text": POST_TEXT_EDIT,
+        }
+        response = self.non_author.post(
+            reverse("posts:post_edit", kwargs={"post_id": new_post_non.pk}),
+            data=form_data_non,
+            follow=True,
+        )
+        self.assertRedirects(
+            response,
+            reverse("posts:post_detail", kwargs={"post_id": new_post_non.pk}),
+        )
+        self.assertNotEqual(new_post_non.text, POST_TEXT_EDIT, "Не состыковки")
 
 
 class TestCommentForm(TestCase):

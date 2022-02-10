@@ -90,6 +90,8 @@ def post_edit(request, post_id):
         files=request.FILES or None,
         instance=post,
     )
+    if request.user != post.author:
+        return redirect("posts:post_detail", post_id)
     if not form.is_valid():
         context = {
             "form": form,

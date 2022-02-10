@@ -41,7 +41,7 @@ class PostURLTest(TestCase):
 
     def setUp(self) -> None:
         self.guest_client = Client()
-        self.user = User.objects.create_user(username="TestUsver")
+        self.user2 = User.objects.create_user(username="TestUsver")
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
