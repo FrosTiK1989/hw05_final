@@ -35,6 +35,9 @@ class PostURLTest(TestCase):
             "/create/": "posts/create_post.html",
             f"/posts/{cls.post.pk}/edit/": "posts/create_post.html",
         }
+        cls.custom_pages_url_names = {
+            "/unexisting_page/": "core/404.html",
+        }
 
     def setUp(self) -> None:
         self.guest_client = Client()
@@ -64,6 +67,19 @@ class PostURLTest(TestCase):
                 self.assertEqual(
                     response.status_code,
                     HTTPStatus.OK,
+                    f"Страница {template} не фурычит",
+                )
+                self.assertTemplateUsed(response, template)
+
+    def test_custom_page(self):
+        """Проверка кастомных страниц."""
+
+        for address, template in self.custom_pages_url_names.items():
+            with self.subTest(address=address):
+                response = self.authorized_client.get(address)
+                self.assertEqual(
+                    response.status_code,
+                    HTTPStatus.NOT_FOUND,
                     f"Страница {template} не фурычит",
                 )
                 self.assertTemplateUsed(response, template)

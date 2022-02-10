@@ -270,10 +270,10 @@ class FollowTest(TestCase):
         self.assertEqual(Follow.objects.count(), follow_count + 1)
 
         response = self.authorized_client.get(reverse("posts:follow_index"))
-        content = response.content
+        context = response.context["page_obj"]
         response2 = self.authorized_client2.get(reverse("posts:follow_index"))
-        new_content = response2.content
-        self.assertNotEqual(content, new_content)
+        new_context = response2.context["page_obj"]
+        self.assertNotEqual(context, new_context)
 
     def test_unfollow_auth_client(self):
         """
