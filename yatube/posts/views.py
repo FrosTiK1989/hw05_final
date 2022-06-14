@@ -21,6 +21,7 @@ def index(request):
     page_obj = get_paginator_page(request, posts)
     context = {
         "page_obj": page_obj,
+        "index": "index",
     }
     return render(request, "posts/index.html", context)
 
@@ -122,6 +123,7 @@ def follow_index(request):
     page_obj = get_paginator_page(request, posts)
     context = {
         "page_obj": page_obj,
+        "follow": "follow",
     }
 
     return render(request, "posts/follow.html", context)
