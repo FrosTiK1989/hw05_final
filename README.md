@@ -1,3 +1,7 @@
-# hw05_final
-
-[![CI](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml)
+### Финальная версия социальной сети YaTube
+# Планы
+- Дописать Readme
+- Улучшить визуальную часть сайта
+- Добавить возможность комментировать посты с главной страницы
+- Оптимизировать под смартфоны
+- Добавить уведомления
